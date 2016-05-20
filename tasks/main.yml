@@ -1,6 +1,6 @@
 ---
 - name: Create backup directory
-  file: "path={{ www_root }}/{{ item.key }}/backup state=directory owner={{ admin_user }} group=sudo mode=0700 recurse=yes"
+  file: "path={{ www_root }}/{{ item.key }}/backup state=directory owner={{ ansible_user }} group={{ ansible_user }} mode=0700 recurse=yes"
   with_dict: "{{ wordpress_sites }}"
 
   # Define the purge jobs to prevent backups from filling the server over time.
@@ -9,24 +9,23 @@
 - name: Create uploads purge job
   cron: name="Purge old uploads backups" minute="0" hour="1"
         cron_file=purge
-        user="{{ admin_user }}" job="duply /etc/duply/{{ item.key }}_uploads purge"
+        user="{{ ansible_user }}" job="duply /etc/duply/{{ item.key }}_uploads purge"
   with_dict: "{{ wordpress_sites }}"
   
   # Purge database backups
 - name: Create database purge job
   cron: name="Purge old database backups" minute="0" hour="2"
         cron_file=purge
-        user="{{ admin_user }}" job="duply /etc/duply/{{ item.key }}_database purge"  
+        user="{{ ansible_user }}" job="duply /etc/duply/{{ item.key }}_database purge"  
   with_dict: "{{ wordpress_sites }}"
   
   # Set up variables used by Stouts.backup to create backup jobs.
 - name: Create backup jobs
   set_fact:
-    backup_user: "{{ admin_user }}"
-    backup_group: sudo
+    backup_user: "{{ ansible_user }}"
+    backup_group: "{{ ansible_user }}"
     
-    backup_target_user: "{{ admin_user }}"
-    backup_target_pass: "{{ vault_sudoer_passwords.admin }}"
+    backup_target_user: "{{ ansible_user }}"
 
     backup_mysql_user: "{{ mysql_root_user }}"
     backup_mysql_pass: "{{ mysql_root_password }}"
